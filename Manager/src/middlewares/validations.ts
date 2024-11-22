@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { body, validationResult } from 'express-validator';
 
 // Validation chain for user preferences creation
-export const validateCreateUserPreferences = [
+export const ValidateCreateUserPreferences = [
   // Validate email
   body('email')
     .optional()

@@ -1,13 +1,13 @@
 import { Request, Response } from 'express';
 import express from 'express';
 import { json } from 'body-parser';
-import { validateCreateUserPreferences } from './middlewares/validations';
+import { ValidateCreateUserPreferences } from './middlewares/validations';
 
 const app = express();
 app.use(json());
 
 /** Create a new User Preference */
-app.post('/user-preferences',validateCreateUserPreferences, async (req: Request, res: Response) => {
+app.post('/user-preferences', ValidateCreateUserPreferences, async (req: Request, res: Response) => {
     // Validate input
 
     // Validate no dupes
