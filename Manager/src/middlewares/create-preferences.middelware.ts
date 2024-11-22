@@ -37,8 +37,8 @@ export const ValidateCreateUserPreferences = [
   // Custom validation to ensure at least one contact method is enabled
   body()
     .custom((value) => {
-      const hasEmail = value.email && value.preferences.email;
-      const hasPhone = value.telephone && value.preferences.sms;
+      const hasEmail = value.email && value.preferences.email !== undefined;
+      const hasPhone = value.telephone && value.preferences.sms !== undefined;
       
       if (!hasEmail && !hasPhone) {
         throw new Error('At least one contact method (email or telephone) must be provided');

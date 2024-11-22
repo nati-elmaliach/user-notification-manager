@@ -1,15 +1,15 @@
-import { NotificationServiceResponse, UserPreferences } from "../types";
+import { NotificationServiceResponse, UpdateUserPreferencesRequest, UserPreferences } from "../types";
 import { NotificationService } from "./notification.service";
 
 export class UserPreferencesManager {
-    private users: Map<number, UserPreferences>;
+    private usersPreferences: Map<number, UserPreferences>;
     private emailIndex: Map<string | undefined, number>;
     private currentId: number;
     private notificationService: NotificationService;
   
     constructor(notificationService: NotificationService) {
       // This can be a good place to fetch users preferences
-      this.users = new Map();
+      this.usersPreferences = new Map();
       this.emailIndex = new Map();
       this.currentId = 0;
       this.notificationService = notificationService;
@@ -21,35 +21,37 @@ export class UserPreferencesManager {
       }
   
       const userId = ++this.currentId;
-      const newUser = Object.assign({ userId }, userData)
+      const newUser = Object.assign(userData, { userId })
   
-      this.users.set(userId, newUser);
+      this.usersPreferences.set(userId, newUser);
       this.emailIndex.set(userData.email, userId);
-  
+
       return newUser;
     }
   
-    updatePreferences(email: string, preferences: UserPreferences['preferences']): UserPreferences {
-      const userId = this.emailIndex.get(email);
+    updatePreferences(userId: number, updateData: UpdateUserPreferencesRequest): UserPreferences {
       if (!userId) {
-        throw new Error('User not found');
+        throw new Error('user id is required');
       }
   
-      const user = this.users.get(userId)!;
-      const updatedUser = {
-        ...user,
-        preferences: {
-          ...user.preferences,
-          ...preferences
-        }
-      };
-  
-      this.users.set(userId, updatedUser);
+      const userPreferences = this.usersPreferences.get(userId);
+      if (!userPreferences) {
+        throw new Error(`Could not find a user with id ${userId}`)
+      }
+      
+      // TODO handle duplicate emails and telepones ?
+
+      const updatedUser = Object.assign(userPreferences, updateData)
+      this.usersPreferences.set(userId, updatedUser);
       return updatedUser;
+    }
+
+    getByUserId(userId: number) {
+      return this.usersPreferences.get(userId);
     }
   
     async sendNotification(userId: number, message: string): Promise<void> {
-      const user = this.users.get(userId);
+      const user = this.usersPreferences.get(userId);
       if (!user) {
         throw new Error(`User with ID ${userId} not found`);
       }

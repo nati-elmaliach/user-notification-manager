@@ -56,4 +56,53 @@ describe('API Integration Tests', () => {
       expect(response.body.error).toBe('User with this email already exists');
     })
   });
+
+  describe('PUT /preferences', () => {
+    it('should throw 404 error if no userId as param', async () => {
+      const response = await request(app)
+      .put('/preferences')
+      .send({ preferences: { email: true, sms: true }});
+
+      expect(response.status).toBe(404);
+    })
+
+    it('should throw an error if userId does not exists', async () => {
+      const response = await request(app)
+      .put('/preferences/59')
+      .send({ preferences: { email: true, sms: true }});
+
+      expect(response.status).toBe(400);
+      expect(response.body.success).toBe(false);
+      expect(response.body.error).toBe('Could not find a user with id 59');
+    })
+
+    it('should throw an error if update data is invalid', async () => {
+      const response = await request(app)
+      .put('/preferences/59')
+      .send({});
+
+      expect(response.status).toBe(400);
+      expect(response.body.success).toBe(false);
+    })
+
+    it('should successfully update a user preferences', async () => {
+      // Create a new user preference
+      const originalPreferences = { email: false, sms: false }
+      const userPreferences = { email: 'newuser1@example.com', telephone: '+1234567890', preferences: originalPreferences }
+      const { body: { userId } } = await request(app)
+        .post('/preferences')
+        .send(userPreferences);
+      
+      // Update this user preference
+      const newUpdatedPreferences = {  email: true, sms: true }
+      await request(app)
+      .put(`/preferences/${userId}`)
+      .send({ preferences: newUpdatedPreferences });
+
+      // Get the new updated user
+      const { body: { preferences }  } = await request(app)
+      .get(`/preferences/${userId}`)
+      expect(preferences).toMatchObject(newUpdatedPreferences);
+    })
+  });
 });
