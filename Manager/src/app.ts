@@ -1,28 +1,30 @@
-import { Request, Response } from 'express';
-import express from 'express';
 import { json } from 'body-parser';
+import express, { Request, Response } from 'express';
+
 import { ValidateCreateUserPreferences } from './middlewares/validations';
+import { CreateUserPreferencesRequest } from './types';
+import { NotificationService } from './services/notification.service';
+import { UserPreferencesManager } from './services/preferences.service';
 
 const app = express();
 app.use(json());
 
+const notificationService = new NotificationService();
+const userPreferencesManager = new UserPreferencesManager(notificationService);
+
 /** Create a new User Preference */
-app.post('/user-preferences', ValidateCreateUserPreferences, async (req: Request, res: Response) => {
-    // Validate input
-
-    // Validate no dupes
-
-    // save
-
-    // return
-
-    res.json({status: "OK"})
+app.post('/preferences', ValidateCreateUserPreferences, async (req: Request, res: Response) => {
+    try {
+        const userData: CreateUserPreferencesRequest = req.body;
+        const newUser = userPreferencesManager.createUser(userData);
+        res.status(201).json(newUser);
+      } catch (error: any) { // TODO handle errors globally
+        res.status(400).json({ success: false, error: error.message });
+      }
 })
 
 /** Update a user Preference  */
-app.put('/user-preferences', async (req, res) => {
-    // Validate input
-
+app.put('/preferences', async (req, res) => {
     // Validate no dupes
 
     // save
