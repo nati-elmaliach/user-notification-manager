@@ -33,26 +33,25 @@ export class NotificationQueueService {
 
   private async sendRequest(notification: QueuedNotification) {
     let status: NotificationStatus;
+
     try {
       this.tokens--;
       await axios.post(`${this.baseUrl}/send-${this.type}`, notification.payload);
-
-      console.log(`Message of type ${this.type} sent: ${notification.payload.message}`)
       status = 'sent';
+      console.log(`Message of type ${this.type} sent: ${notification.payload.message}`);
     } catch (error) {
+      // Handle retries if the maximum retry count has not been reached
       if (notification.retries < this.config.maxRetries) {
         notification.retries++;
         this.queue.push(notification);
         status = 'queued';
       } else {
+        // Mark as failed after exceeding retries
         status = 'failed';
-        console.log(`Failed to send message of type ${this.type}, message: ${notification.payload.message}, status: ${status}`)
+        console.error(`Failed to send message of type ${this.type}, message: ${notification.payload.message}. Status: ${status}`);
       }
     } finally {
-      if (this.queueInterval) {
-        clearInterval(this.queueInterval)
-      }
-      this.queueInterval = setInterval(() => this.processQueue(), this.config.windowMs)
+      this.resetQueueInterval();
     }
     return { type: this.type, status };
   }
@@ -72,5 +71,12 @@ export class NotificationQueueService {
 
     console.log(results)
     // This can be a good place to notify queued message has being sent
+  }
+
+  private resetQueueInterval(): void {
+    if (this.queueInterval) {
+      clearInterval(this.queueInterval);
+    }
+    this.queueInterval = setInterval(() => this.processQueue(), this.config.windowMs);
   }
 }
