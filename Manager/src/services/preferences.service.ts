@@ -66,6 +66,7 @@ export class UserPreferencesManager {
       const { email: userEmail, telephone, preferences  } = userPreferences;
       
       const sendEmail = userEmail && preferences.email;
+      console.log(sendEmail)
       if (sendEmail) {
         const emailResponse = await this.notificationService.sendEmail(userEmail, message);
         console.log(emailResponse)

@@ -1,0 +1,37 @@
+# baseURL
+@baseURL = http://localhost:8080
+
+###
+# Create User Preferences
+POST {{ baseURL }}/preferences
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "telephone": "+123456786",
+  "preferences": { "email": true, "sms": false }
+}
+
+###
+# Find User By Id
+GET {{ baseURL }}/preferences/1
+
+
+###
+# Update User Preferences
+PUT {{ baseURL }}/preferences/1
+Content-Type: application/json
+
+{
+  "preferences": { "email": true, "sms": false }
+}
+
+###
+# Create User Preferences
+POST {{ baseURL }}/send
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "message": "start cooking"
+}

@@ -4,7 +4,7 @@ import { NotificationServiceResponse } from '../types';
 export class NotificationService {
   private readonly baseUrl: string;
 
-  constructor(baseUrl: string = 'http://notification-service:5001') { // TODO move to ENV
+  constructor(baseUrl: string = 'http://localhost:5001') { // TODO move to ENV
     this.baseUrl = baseUrl;
   }
 
