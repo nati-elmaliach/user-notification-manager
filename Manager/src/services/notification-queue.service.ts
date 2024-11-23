@@ -3,7 +3,7 @@ import { NotificationStatus, NotificationType, QueuedNotification, QueuedNotific
 
 function getTime() {
   const now = new Date();
-  now.toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit', second: '2-digit' })
+  return now.toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit', second: '2-digit' })
 }
 
 export class NotificationQueueService {
@@ -36,7 +36,7 @@ export class NotificationQueueService {
       if(this.queueInterval) {
         clearInterval(this.queueInterval)
       }
-      this.queueInterval = setInterval(() => this.processQueue(), this.config.windowMs + 100); // Add a small delay
+      this.queueInterval = setInterval(() => this.processQueue(), this.config.windowMs + 1000); // Why do we need this delay ?
     }
 
     if (this.tokens > 0) {
