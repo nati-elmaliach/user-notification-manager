@@ -30,3 +30,21 @@ export interface NotificationServiceResponse {
   success: boolean;
   message: string;
 }
+
+
+export type NotificationType = 'email' | 'sms';
+export interface QueuedNotification {
+  type: NotificationType
+  payload: {
+    email?: string;
+    telephone?: string;
+    message: string;
+  };
+  retries: number;
+}
+
+export interface QueuedNotificationConfig {
+  bucketSize: number,
+  windowMs: number,
+  maxRetries: number
+}

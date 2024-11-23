@@ -13,12 +13,12 @@ export class UserPreferencesManager {
     private currentId: number;
     private notificationService: NotificationService;
   
-    constructor(notificationService: NotificationService) {
+    constructor() {
       // This can be a good place to fetch users preferences
       this.usersPreferences = new Map();
       this.emailIndex = new Map();
       this.currentId = 0;
-      this.notificationService = notificationService;
+      this.notificationService = new NotificationService();
     }
 
     createUser(userData: Omit<UserPreferences, 'userId'>): UserPreferences {
@@ -66,18 +66,18 @@ export class UserPreferencesManager {
       const { email: userEmail, telephone, preferences  } = userPreferences;
       
       const sendEmail = userEmail && preferences.email;
-      console.log(sendEmail)
+
       if (sendEmail) {
-        const emailResponse = await this.notificationService.sendEmail(userEmail, message);
-        console.log(emailResponse)
+        await this.notificationService.sendEmail(userEmail, message);
         response.email = 'queued';
+        // This can be a good place to save message status
       }
   
       const sendSms = telephone && preferences.sms;
       if (sendSms) {
-        const smsResponse = await this.notificationService.sendSMS(telephone, message)
-        console.log(smsResponse)
+        await this.notificationService.sendSMS(telephone, message)
         response.sms = 'queued'
+        // This can be a good place to save message status
       }
   
       return response;

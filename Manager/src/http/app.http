@@ -27,7 +27,7 @@ Content-Type: application/json
 }
 
 ###
-# Create User Preferences
+# Send a notification
 POST {{ baseURL }}/send
 Content-Type: application/json
 

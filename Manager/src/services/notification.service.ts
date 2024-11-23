@@ -1,28 +1,38 @@
-import axios from 'axios';
-import { NotificationServiceResponse } from '../types';
+import { QueuedNotificationConfig } from '../types';
+import { NotificationQueueService } from './notification-queue.service';
 
+
+
+const SMS_RATE_LIMIT = Number(process.env.SMS_RATE_LIMIT || 1);
+const EMAIL_RATE_LIMIT = Number(process.env.EMAIL_RATE_LIMIT || 1);
+const RATE_LIMIT_WINDOW_MS = Number(process.env.RATE_LIMIT_WINDOW_MS || 1);
+const emailConfig: QueuedNotificationConfig = {
+  bucketSize: EMAIL_RATE_LIMIT, 
+  windowMs: RATE_LIMIT_WINDOW_MS,
+  maxRetries: 3
+}
+
+const smsConfig: QueuedNotificationConfig = {
+  bucketSize: SMS_RATE_LIMIT, 
+  windowMs: RATE_LIMIT_WINDOW_MS,
+  maxRetries: 3
+}
+
+const NOTIFICATION_SERVICE_URL  =  process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:5001'
 export class NotificationService {
-  private readonly baseUrl: string;
+  private readonly emailQueueService: NotificationQueueService;
+  private readonly smsQueueService: NotificationQueueService;
 
-  constructor(baseUrl: string = 'http://localhost:5001') { // TODO move to ENV
-    this.baseUrl = baseUrl;
+  constructor(baseUrl: string = NOTIFICATION_SERVICE_URL) {
+    this.emailQueueService = new NotificationQueueService(baseUrl, 'email', emailConfig );
+    this.smsQueueService = new NotificationQueueService(baseUrl, 'sms', smsConfig);
+  }
+ 
+  async sendEmail(email: string, message: string): Promise<void> {
+    return await this.emailQueueService.sendNotification({ email, message });
   }
 
-  async sendEmail(email: string, message: string): Promise<NotificationServiceResponse> {
-    try {
-      const response = await axios.post(`${this.baseUrl}/send-email`, { email, message });
-      return response.data;
-    } catch (error: any) {
-      throw new Error(`Failed to send email: ${error.message}`);
-    }
-  }
-
-  async sendSMS(telephone: string, message: string): Promise<NotificationServiceResponse> {
-    try {
-      const response = await axios.post(`${this.baseUrl}/send-sms`, { telephone, message });
-      return response.data;
-    } catch (error: any) {
-      throw new Error(`Failed to send SMS: ${error.message}`);
-    }
+  async sendSMS(telephone: string, message: string): Promise<void> {
+    return await this.smsQueueService.sendNotification({ telephone, message });
   }
 }

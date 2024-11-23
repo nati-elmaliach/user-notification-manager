@@ -1,5 +1,11 @@
 version: '3.8'
 
+
+x-env: &env
+  SMS_RATE_LIMIT: 3
+  EMAIL_RATE_LIMIT: 3
+  RATE_LIMIT_WINDOW_MS: 10000
+
 services:
   user-notifications-manager:
     build:
@@ -7,6 +13,9 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
+    environment:
+      <<: *env
+      NOTIFICATION_SERVICE_URL: 'http://notification-service:5001'
     depends_on:
       - notification-service # should wait
 
@@ -15,7 +24,5 @@ services:
     ports:
       - "5001:5001"
     environment:
-      - EMAIL_RATE_LIMIT=1
-      - SMS_RATE_LIMIT=1
-      - RATE_LIMIT_WINDOW_MS=1000
-      - ERROR_RATE=0.1 
+      <<: *env
+      ERROR_RATE: 0 

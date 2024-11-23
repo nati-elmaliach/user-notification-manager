@@ -11,8 +11,7 @@ import { CreateUserPreferencesRequest, NotificationRequest, UpdateUserPreference
 const app = express();
 app.use(json());
 
-const notificationService = new NotificationService();
-const userPreferencesManager = new UserPreferencesManager(notificationService);
+const userPreferencesManager = new UserPreferencesManager();
 
 /** Create a new User Preference */
 app.post('/preferences', ValidateCreateUserPreferences, async (req: Request, res: Response) => {
@@ -37,10 +36,12 @@ app.put('/preferences/:id', ValidateUpdatePreferences, async (req: Request, res:
       }
 })
 
+let counter = 1; // Testing purposes only to validate messages order
 /** Send notification base on user preference */
 app.post('/send', ValidateSendNotificationRequest, async (req: Request, res: Response) => {
     try {
-        const notificationReq: NotificationRequest = req.body;    
+        const notificationReq: NotificationRequest = req.body;
+        notificationReq.message += ` ${counter++}`
         const notificationRes = await userPreferencesManager.sendNotification(notificationReq);
         res.status(200).json(notificationRes);
     } catch (error: any) {
