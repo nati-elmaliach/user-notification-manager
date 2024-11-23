@@ -1,7 +1,5 @@
 import axios from 'axios';
-import { NotificationType, QueuedNotification, QueuedNotificationConfig } from "../types";
-
-
+import { NotificationResponseType, NotificationType, QueuedNotification, QueuedNotificationConfig } from "../types";
 
 export class NotificationQueueService {
   private tokens: number;
@@ -17,7 +15,7 @@ export class NotificationQueueService {
      this.tokens = config.bucketSize;
   }
 
-  public async sendNotification(payload: QueuedNotification["payload"]) {
+  public async sendNotification(payload: QueuedNotification["payload"]): Promise<{status: NotificationResponseType }> {
     const notification: QueuedNotification = {
       type: this.type,
       payload,
@@ -25,30 +23,38 @@ export class NotificationQueueService {
     };
 
     if (this.tokens > 0) {
-      await this.sendRequest(notification)
-    } else {
-      console.log(`Queue length: ${this.queue.length + 1}, Adding message to queue: ${payload.message}`)
-      this.queue.push(notification);
+      return await this.sendRequest(notification)
     }
+
+    this.queue.push(notification);
+    console.log(`Queue length: ${this.queue.length}, Adding message to queue: ${payload.message}`)
+    return { status: 'queued' }
   }
 
   private async sendRequest(notification: QueuedNotification) {
+    let status: NotificationResponseType;
     try {
       this.tokens--;
       await axios.post(`${this.baseUrl}/send-${this.type}`, notification.payload);
+
       console.log(`Message of type ${this.type} sent: ${notification.payload.message}`)
+      status = 'sent';
     } catch (error) {
-      console.log(`Failed to send message of type ${this.type}, message: ${notification.payload.message}`)
       if (notification.retries < this.config.maxRetries) {
         notification.retries++;
         this.queue.push(notification);
+        status = 'queued';
       }
+      status = 'failed';
+
+      console.log(`Failed to send message of type ${this.type}, message: ${notification.payload.message}, status: ${status}`)
     } finally {
       if (this.queueInterval) {
         clearInterval(this.queueInterval)
       }
       this.queueInterval = setInterval(() => this.processQueue(), this.config.windowMs)
     }
+    return { status };
   }
 
   private async processQueue() {

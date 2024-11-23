@@ -28,11 +28,11 @@ export class NotificationService {
     this.smsQueueService = new NotificationQueueService(baseUrl, 'sms', smsConfig);
   }
  
-  async sendEmail(email: string, message: string): Promise<void> {
+  async sendEmail(email: string, message: string) {
     return await this.emailQueueService.sendNotification({ email, message });
   }
 
-  async sendSMS(telephone: string, message: string): Promise<void> {
+  async sendSMS(telephone: string, message: string) {
     return await this.smsQueueService.sendNotification({ telephone, message });
   }
 }

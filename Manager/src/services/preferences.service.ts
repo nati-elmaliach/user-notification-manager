@@ -1,10 +1,9 @@
 import { NotificationService } from "./notification.service";
 import { 
+  UserPreferences,
   NotificationRequest, 
-  NotificationResponse, 
-  NotificationServiceResponse, 
+  SendNotificationResponse, 
   UpdateUserPreferencesRequest, 
-  UserPreferences 
 } from "../types";
 
 export class UserPreferencesManager {
@@ -52,7 +51,7 @@ export class UserPreferencesManager {
       return updatedUser;
     }
   
-    async sendNotification( { userId, email, message } : NotificationRequest): Promise<NotificationResponse> {
+    async sendNotification( { userId, email, message } : NotificationRequest): Promise<SendNotificationResponse> {
       if (!userId) {
         userId = this.emailIndex.get(email)!; 
       }
@@ -62,21 +61,19 @@ export class UserPreferencesManager {
         throw new Error(`user not found`);
       }
       
-      const response: NotificationResponse = { message }
+      const response: SendNotificationResponse = {}
       const { email: userEmail, telephone, preferences  } = userPreferences;
       
       const sendEmail = userEmail && preferences.email;
 
       if (sendEmail) {
-        await this.notificationService.sendEmail(userEmail, message);
-        response.email = 'queued';
+        response.email = await this.notificationService.sendEmail(userEmail, message);
         // This can be a good place to save message status
       }
   
       const sendSms = telephone && preferences.sms;
       if (sendSms) {
-        await this.notificationService.sendSMS(telephone, message)
-        response.sms = 'queued'
+        response.sms = await this.notificationService.sendSMS(telephone, message)
         // This can be a good place to save message status
       }
   
