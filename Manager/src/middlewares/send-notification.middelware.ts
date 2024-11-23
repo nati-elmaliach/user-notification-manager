@@ -40,7 +40,6 @@ export const ValidateSendNotificationRequest = [
         }))
         });
     }
-
     next();
     }
 ];

@@ -1,8 +1,6 @@
 import { QueuedNotificationConfig } from '../types';
 import { NotificationQueueService } from './notification-queue.service';
 
-
-
 const SMS_RATE_LIMIT = Number(process.env.SMS_RATE_LIMIT || 1);
 const EMAIL_RATE_LIMIT = Number(process.env.EMAIL_RATE_LIMIT || 1);
 const RATE_LIMIT_WINDOW_MS = Number(process.env.RATE_LIMIT_WINDOW_MS || 1);
@@ -29,10 +27,14 @@ export class NotificationService {
   }
  
   async sendEmail(email: string, message: string) {
-    return await this.emailQueueService.sendNotification({ email, message });
+    const result = await this.emailQueueService.sendNotification({ email, message });
+    // This can be a good place to save message status
+    return result;
   }
 
   async sendSMS(telephone: string, message: string) {
-    return await this.smsQueueService.sendNotification({ telephone, message });
+    const result = await this.smsQueueService.sendNotification({ telephone, message });
+    // This can be a good place to save message status
+    return result;
   }
 }

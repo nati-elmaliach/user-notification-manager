@@ -20,12 +20,7 @@ export interface NotificationRequest {
   message: string;
 }
 
-export type NotificationResponseType = 'sent' | 'queued' | 'failed';
-export interface SendNotificationResponse {
-  email?: { status: NotificationResponseType };
-  sms?: { status: NotificationResponseType }
-}
-
+export type NotificationStatus = 'sent' | 'queued' | 'failed';
 export type NotificationType = 'email' | 'sms';
 export interface QueuedNotification {
   type: NotificationType

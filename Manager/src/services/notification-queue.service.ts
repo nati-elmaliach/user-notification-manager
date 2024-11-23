@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { NotificationResponseType, NotificationType, QueuedNotification, QueuedNotificationConfig } from "../types";
+import { NotificationStatus, NotificationType, QueuedNotification, QueuedNotificationConfig } from "../types";
 
 export class NotificationQueueService {
   private tokens: number;
@@ -15,7 +15,7 @@ export class NotificationQueueService {
      this.tokens = config.bucketSize;
   }
 
-  public async sendNotification(payload: QueuedNotification["payload"]): Promise<{status: NotificationResponseType }> {
+  public async sendNotification(payload: QueuedNotification["payload"]) {
     const notification: QueuedNotification = {
       type: this.type,
       payload,
@@ -28,11 +28,11 @@ export class NotificationQueueService {
 
     this.queue.push(notification);
     console.log(`Queue length: ${this.queue.length}, Adding message to queue: ${payload.message}`)
-    return { status: 'queued' }
+    return { type: this.type, status: 'queued' }
   }
 
   private async sendRequest(notification: QueuedNotification) {
-    let status: NotificationResponseType;
+    let status: NotificationStatus;
     try {
       this.tokens--;
       await axios.post(`${this.baseUrl}/send-${this.type}`, notification.payload);
@@ -44,17 +44,17 @@ export class NotificationQueueService {
         notification.retries++;
         this.queue.push(notification);
         status = 'queued';
+      } else {
+        status = 'failed';
+        console.log(`Failed to send message of type ${this.type}, message: ${notification.payload.message}, status: ${status}`)
       }
-      status = 'failed';
-
-      console.log(`Failed to send message of type ${this.type}, message: ${notification.payload.message}, status: ${status}`)
     } finally {
       if (this.queueInterval) {
         clearInterval(this.queueInterval)
       }
       this.queueInterval = setInterval(() => this.processQueue(), this.config.windowMs)
     }
-    return { status };
+    return { type: this.type, status };
   }
 
   private async processQueue() {
@@ -71,7 +71,6 @@ export class NotificationQueueService {
     )
 
     console.log(results)
-    console.log(this.queue.length)
-    // This can be a good place to notify message has being sent
+    // This can be a good place to notify queued message has being sent
   }
 }

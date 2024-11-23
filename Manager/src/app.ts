@@ -1,7 +1,6 @@
 import { json } from 'body-parser';
 import express, { Request, Response } from 'express';
 
-import { NotificationService } from './services/notification.service';
 import { UserPreferencesManager } from './services/preferences.service';
 import { ValidateUpdatePreferences } from './middlewares/update-preferences.middleware';
 import { ValidateCreateUserPreferences } from './middlewares/create-preferences.middelware';
@@ -16,7 +15,7 @@ const userPreferencesManager = new UserPreferencesManager();
 /** Create a new User Preference */
 app.post('/preferences', ValidateCreateUserPreferences, async (req: Request, res: Response) => {
     try {
-        const preferencesData: CreateUserPreferencesRequest = req.body; // TODO better types
+        const preferencesData: CreateUserPreferencesRequest = req.body;
         const newPreferencesData = userPreferencesManager.createUser(preferencesData);
         res.status(201).json(newPreferencesData);
       } catch (error: any) { // TODO handle errors globally

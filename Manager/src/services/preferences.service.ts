@@ -1,8 +1,7 @@
 import { NotificationService } from "./notification.service";
 import { 
   UserPreferences,
-  NotificationRequest, 
-  SendNotificationResponse, 
+  NotificationRequest,
   UpdateUserPreferencesRequest, 
 } from "../types";
 
@@ -13,7 +12,7 @@ export class UserPreferencesManager {
     private notificationService: NotificationService;
   
     constructor() {
-      // This can be a good place to fetch users preferences
+      // This can be a good place to fetch users preferences from an extenrnal api
       this.usersPreferences = new Map();
       this.emailIndex = new Map();
       this.currentId = 0;
@@ -34,11 +33,7 @@ export class UserPreferencesManager {
       return newUser;
     }
   
-    updatePreferences(userId: number, updateData: UpdateUserPreferencesRequest): UserPreferences {
-      if (!userId) {
-        throw new Error('user id is required');
-      }
-  
+    updatePreferences(userId: number, updateData: UpdateUserPreferencesRequest): UserPreferences {  
       const userPreferences = this.usersPreferences.get(userId);
       if (!userPreferences) {
         throw new Error(`Could not find a user with id ${userId}`)
@@ -51,33 +46,27 @@ export class UserPreferencesManager {
       return updatedUser;
     }
   
-    async sendNotification( { userId, email, message } : NotificationRequest): Promise<SendNotificationResponse> {
-      if (!userId) {
-        userId = this.emailIndex.get(email)!; 
-      }
-
-      const userPreferences = this.usersPreferences.get(userId);
+    async sendNotification(notification: NotificationRequest) {
+      const userId = notification.userId ?? this.emailIndex.get(notification.email);
+      const userPreferences = this.usersPreferences.get(userId!);
       if (!userPreferences) {
-        throw new Error(`user not found`);
+        throw new Error(`Could not find a user with id ${userId}`);
       }
-      
-      const response: SendNotificationResponse = {}
-      const { email: userEmail, telephone, preferences  } = userPreferences;
-      
-      const sendEmail = userEmail && preferences.email;
 
+      const promises = [];
+      const { email, telephone, preferences } = userPreferences;
+
+      const sendEmail = email && preferences.email;
       if (sendEmail) {
-        response.email = await this.notificationService.sendEmail(userEmail, message);
-        // This can be a good place to save message status
+        promises.push(this.notificationService.sendEmail(email, notification.message));
       }
   
       const sendSms = telephone && preferences.sms;
       if (sendSms) {
-        response.sms = await this.notificationService.sendSMS(telephone, message)
-        // This can be a good place to save message status
+        promises.push(this.notificationService.sendSMS(telephone, notification.message))
       }
-  
-      return response;
+      
+      return Promise.all(promises);
     }
 
     getByUserId(userId: number) {
