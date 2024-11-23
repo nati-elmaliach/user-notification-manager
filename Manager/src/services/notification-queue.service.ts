@@ -1,10 +1,15 @@
 import axios from 'axios';
-import { NotificationStatus, NotificationType, QueuedNotification, QueuedNotificationConfig } from "../types";
+import { NotificationStatus, NotificationType, QueuedNotification, QueuedNotificationConfig, SendNotificationResponse } from "../types";
+
+function getTime() {
+  const now = new Date();
+  now.toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit', second: '2-digit' })
+}
 
 export class NotificationQueueService {
   private tokens: number;
   private queue: QueuedNotification[] = [];
-  private queueInterval: NodeJS.Timeout | undefined;
+  private queueInterval: NodeJS.Timeout | null = null;
   
   constructor(
     private readonly baseUrl: string,
@@ -17,46 +22,58 @@ export class NotificationQueueService {
 
   public async sendNotification(payload: QueuedNotification["payload"]) {
     const notification: QueuedNotification = {
-      type: this.type,
       payload,
-      retries: 0
+      retries: 0,
+      type: this.type,
     };
+
+    return this.sendOrEnqueue(notification);
+  }
+
+  private async sendOrEnqueue(notification: QueuedNotification): Promise<SendNotificationResponse> {
+    // We want to restart the process for the first request
+    if (this.queue.length === 0 && this.tokens === this.config.bucketSize) {
+      if(this.queueInterval) {
+        clearInterval(this.queueInterval)
+      }
+      this.queueInterval = setInterval(() => this.processQueue(), this.config.windowMs + 100); // Add a small delay
+    }
 
     if (this.tokens > 0) {
       return await this.sendRequest(notification)
     }
 
     this.queue.push(notification);
-    console.log(`Queue length: ${this.queue.length}, Adding message to queue: ${payload.message}`)
+    console.log(`Queue length: ${this.queue.length}, Adding message to queue: ${notification.payload.message}`)
     return { type: this.type, status: 'queued' }
   }
-
+ 
   private async sendRequest(notification: QueuedNotification) {
+    console.log('Sending request at: ' + getTime() + ' ' + notification.payload.message);
+
     let status: NotificationStatus;
 
     try {
       this.tokens--;
       await axios.post(`${this.baseUrl}/send-${this.type}`, notification.payload);
       status = 'sent';
-      console.log(`Message of type ${this.type} sent: ${notification.payload.message}`);
-    } catch (error) {
+    } catch (error: any) {
+      console.log('Retryring request at: ' + getTime() +` ${notification.payload.message}`);
       // Handle retries if the maximum retry count has not been reached
       if (notification.retries < this.config.maxRetries) {
         notification.retries++;
-        this.queue.push(notification);
-        status = 'queued';
-      } else {
+        return this.sendOrEnqueue(notification)
+      } else { 
         // Mark as failed after exceeding retries
         status = 'failed';
         console.error(`Failed to send message of type ${this.type}, message: ${notification.payload.message}. Status: ${status}`);
       }
-    } finally {
-      this.resetQueueInterval();
     }
     return { type: this.type, status };
   }
 
   private async processQueue() {
+    console.log('Processing queue : ' + getTime());
     this.tokens = this.config.bucketSize;
 
     const queueSize = this.queue.length;
@@ -71,12 +88,5 @@ export class NotificationQueueService {
 
     console.log(results)
     // This can be a good place to notify queued message has being sent
-  }
-
-  private resetQueueInterval(): void {
-    if (this.queueInterval) {
-      clearInterval(this.queueInterval);
-    }
-    this.queueInterval = setInterval(() => this.processQueue(), this.config.windowMs);
   }
 }

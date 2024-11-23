@@ -23,7 +23,7 @@ PUT {{ baseURL }}/preferences/1
 Content-Type: application/json
 
 {
-  "preferences": { "email": true, "sms": false }
+  "preferences": { "email": true, "sms": true }
 }
 
 ###

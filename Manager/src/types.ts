@@ -23,6 +23,11 @@ export interface NotificationRequest {
   message: string;
 }
 
+export interface SendNotificationResponse {
+  type: NotificationType;
+  status: NotificationStatus
+}
+
 // Notification Types and Statuses
 export type NotificationType = 'email' | 'sms';
 export type NotificationStatus = 'sent' | 'queued' | 'failed';
