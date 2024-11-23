@@ -63,13 +63,19 @@ export class UserPreferencesManager {
       }
       
       const response: NotificationResponse = { message }
-      const sendEmail = userPreferences.email && userPreferences.preferences.email;
+      const { email: userEmail, telephone, preferences  } = userPreferences;
+      
+      const sendEmail = userEmail && preferences.email;
       if (sendEmail) {
+        const emailResponse = await this.notificationService.sendEmail(userEmail, message);
+        console.log(emailResponse)
         response.email = 'queued';
       }
   
-      const sendSms = userPreferences.telephone && userPreferences.preferences.sms;
+      const sendSms = telephone && preferences.sms;
       if (sendSms) {
+        const smsResponse = await this.notificationService.sendSMS(telephone, message)
+        console.log(smsResponse)
         response.sms = 'queued'
       }
   

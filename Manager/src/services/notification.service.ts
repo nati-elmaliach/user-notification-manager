@@ -10,7 +10,7 @@ export class NotificationService {
 
   async sendEmail(email: string, message: string): Promise<NotificationServiceResponse> {
     try {
-      const response = await axios.post(`${this.baseUrl}/email`, { email, message });
+      const response = await axios.post(`${this.baseUrl}/send-email`, { email, message });
       return response.data;
     } catch (error: any) {
       throw new Error(`Failed to send email: ${error.message}`);
@@ -19,7 +19,7 @@ export class NotificationService {
 
   async sendSMS(telephone: string, message: string): Promise<NotificationServiceResponse> {
     try {
-      const response = await axios.post(`${this.baseUrl}/sms`, { telephone, message });
+      const response = await axios.post(`${this.baseUrl}/send-sms`, { telephone, message });
       return response.data;
     } catch (error: any) {
       throw new Error(`Failed to send SMS: ${error.message}`);
