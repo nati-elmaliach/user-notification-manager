@@ -105,4 +105,43 @@ describe('API Integration Tests', () => {
       expect(preferences).toMatchObject(newUpdatedPreferences);
     })
   });
+
+  describe('POST /send', () => {
+    it('should throw 400 error if no body', async () => {
+      const response = await request(app)
+      .post('/send')
+      .send({});
+
+      expect(response.status).toBe(400);
+    })
+
+    it('should throw 400 error if no userId or email', async () => {
+      const response = await request(app)
+      .post('/send')
+      .send({ message: 'start cooking' });
+
+      expect(response.status).toBe(400);
+    })
+
+    it('should throw 400 error if could not find user', async () => {
+      const response = await request(app)
+      .post('/send')
+      .send({ email: 'random@ruii.com', message: 'start cooking' });
+
+      expect(response.status).toBe(400);
+    })
+
+    it('should return what was sent based on user preferences', async () => {
+      const message = 'start cooking';      
+      const response = await request(app)
+      .post('/send')
+      .send({ email: 'newuser@example.com' , message });
+
+      expect(response.status).toBe(200);
+      expect(response.body.message).toBe(message);
+      expect(response.body.email).toBe('queued'); // TODO handle global state
+      expect(response.body.sms).toBe('queued');
+    })
+
+  });
 });

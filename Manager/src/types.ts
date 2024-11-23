@@ -14,18 +14,16 @@ export type UpdateUserPreferencesRequest = Omit<CreateUserPreferencesRequest, 'p
   preferences?: Preferences;
 };
 
-
 export interface NotificationRequest {
-  userId: number;
+  userId?: number;
+  email?: string;
   message: string;
 }
 
-export interface PreferencesUpdateRequest {
-  email: string;
-  preferences: {
-    email: boolean;
-    sms: boolean;
-  };
+export interface NotificationResponse {
+  sms?: string;
+  email?: string;
+  message: string;
 }
 
 export interface NotificationServiceResponse {

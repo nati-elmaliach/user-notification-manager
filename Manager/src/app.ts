@@ -3,9 +3,10 @@ import express, { Request, Response } from 'express';
 
 import { NotificationService } from './services/notification.service';
 import { UserPreferencesManager } from './services/preferences.service';
-import { CreateUserPreferencesRequest, UpdateUserPreferencesRequest } from './types';
 import { ValidateUpdatePreferences } from './middlewares/update-preferences.middleware';
 import { ValidateCreateUserPreferences } from './middlewares/create-preferences.middelware';
+import { ValidateSendNotificationRequest } from './middlewares/send-notification.middelware';
+import { CreateUserPreferencesRequest, NotificationRequest, UpdateUserPreferencesRequest } from './types';
 
 const app = express();
 app.use(json());
@@ -30,35 +31,27 @@ app.put('/preferences/:id', ValidateUpdatePreferences, async (req: Request, res:
         const userId = Number(req.params.id);
         const updateData: UpdateUserPreferencesRequest = req.body;
         const updatedPreferences = userPreferencesManager.updatePreferences(userId, updateData);
-        res.json(updatedPreferences);
+        res.status(200).json(updatedPreferences);
       } catch (error: any) {
         res.status(400).json({ success: false, error: error.message });
       }
 })
 
+/** Send notification base on user preference */
+app.post('/send', ValidateSendNotificationRequest, async (req: Request, res: Response) => {
+    try {
+        const notificationReq: NotificationRequest = req.body;    
+        const notificationRes = await userPreferencesManager.sendNotification(notificationReq);
+        res.status(200).json(notificationRes);
+    } catch (error: any) {
+        res.status(400).json({ success: false, error: error.message });
+    }
+})
+
+/** Get preferences bu userId */
 app.get('/preferences/:id', async (req: Request, res: Response)  => {
     const userId = Number(req.params.id);
-    console.log(userId)
     res.json(userPreferencesManager.getByUserId(userId))
 })
-
-/** Send notification base on user preference */
-app.post('/send-notifications', async (req: Request, res: Response) => {
-    // TODO validate user exists
-
-    // parse input and user preferences
-
-    // if need to send an email -> create a promise
-
-    // if need to send sms -> create a promise
-
-    // await 
-
-    // catch errors
-
-    // return response
-})
-
-
 
 export default app;

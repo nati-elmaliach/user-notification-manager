@@ -1,5 +1,11 @@
-import { NotificationServiceResponse, UpdateUserPreferencesRequest, UserPreferences } from "../types";
 import { NotificationService } from "./notification.service";
+import { 
+  NotificationRequest, 
+  NotificationResponse, 
+  NotificationServiceResponse, 
+  UpdateUserPreferencesRequest, 
+  UserPreferences 
+} from "../types";
 
 export class UserPreferencesManager {
     private usersPreferences: Map<number, UserPreferences>;
@@ -45,27 +51,32 @@ export class UserPreferencesManager {
       this.usersPreferences.set(userId, updatedUser);
       return updatedUser;
     }
+  
+    async sendNotification( { userId, email, message } : NotificationRequest): Promise<NotificationResponse> {
+      if (!userId) {
+        userId = this.emailIndex.get(email)!; 
+      }
+
+      const userPreferences = this.usersPreferences.get(userId);
+      if (!userPreferences) {
+        throw new Error(`user not found`);
+      }
+      
+      const response: NotificationResponse = { message }
+      const sendEmail = userPreferences.email && userPreferences.preferences.email;
+      if (sendEmail) {
+        response.email = 'queued';
+      }
+  
+      const sendSms = userPreferences.telephone && userPreferences.preferences.sms;
+      if (sendSms) {
+        response.sms = 'queued'
+      }
+  
+      return response;
+    }
 
     getByUserId(userId: number) {
       return this.usersPreferences.get(userId);
-    }
-  
-    async sendNotification(userId: number, message: string): Promise<void> {
-      const user = this.usersPreferences.get(userId);
-      if (!user) {
-        throw new Error(`User with ID ${userId} not found`);
-      }
-  
-      const promises: Promise<NotificationServiceResponse>[] = [];
-  
-      if (user.email && user.preferences.email) {
-        promises.push(this.notificationService.sendEmail(user.email, message));
-      }
-  
-      if (user.telephone && user.preferences.sms) {
-        promises.push(this.notificationService.sendSMS(user.telephone, message));
-      }
-  
-      await Promise.all(promises);
     }
   }
