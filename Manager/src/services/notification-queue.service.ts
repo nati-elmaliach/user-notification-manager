@@ -36,7 +36,7 @@ export class NotificationQueueService {
       if(this.queueInterval) {
         clearInterval(this.queueInterval)
       }
-      this.queueInterval = setInterval(() => this.processQueue(), this.config.windowMs + 1000); // Why do we need this delay ?
+      this.queueInterval = setInterval(() => this.processQueue(), this.config.windowMs + 1000); // Add a delay to avoid false rate limit
     }
 
     if (this.tokens > 0) {
@@ -52,7 +52,6 @@ export class NotificationQueueService {
     console.log('Sending request at: ' + getTime() + ' ' + notification.payload.message);
 
     let status: NotificationStatus;
-
     try {
       this.tokens--;
       await axios.post(`${this.baseUrl}/send-${this.type}`, notification.payload);

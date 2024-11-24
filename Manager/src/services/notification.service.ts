@@ -1,7 +1,11 @@
 import { QueuedNotificationConfig } from '../types';
 import { NotificationQueueService } from './notification-queue.service';
 
-// This can be fetched or we can get it from headers
+
+/** 
+ * To keep it simple ive shared the env.
+ * This can be fetched or we can get it from headers.
+*/
 const SMS_RATE_LIMIT = Number(process.env.SMS_RATE_LIMIT || 3);
 const EMAIL_RATE_LIMIT = Number(process.env.EMAIL_RATE_LIMIT || 3);
 const RATE_LIMIT_WINDOW_MS = Number(process.env.RATE_LIMIT_WINDOW_MS || 10000);

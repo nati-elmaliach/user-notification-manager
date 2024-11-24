@@ -17,6 +17,9 @@ The service will run on `http://localhost:8080`.
 docker-compose up  --build
 ```
 
+### Testing
+Iv'e used REST extension for vs code (app.http)
+
 ## Improvments
  - More tests. i added some integration tests but we should defently 
 test each service. (A bit more work though)
