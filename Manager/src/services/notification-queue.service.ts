@@ -58,10 +58,10 @@ export class NotificationQueueService {
       status = 'sent';
     } catch (error: any) {
       // TODO handle errors differently, e.g mesage too long should not be retried
-
       console.log('Retryring request at: ' + getTime() +` ${notification.payload.message}`);
-      // Handle retries if the maximum retry count has not been reached
+      
       if (notification.retries < this.config.maxRetries) {
+        // Handle retries if the maximum retry count has not been reached
         notification.retries++;
         return this.sendOrEnqueue(notification)
       } else { 
