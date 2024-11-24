@@ -17,7 +17,7 @@ services:
       <<: *env
       NOTIFICATION_SERVICE_URL: 'http://notification-service:5001'
     depends_on:
-      - notification-service # should wait
+      - notification-service # should wait e.g health check
 
   notification-service:
     image: aryekog/backend-interview-notifications-service:0.0.2
