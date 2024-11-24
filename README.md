@@ -6,7 +6,7 @@ A simple service that allows you to send notifications based on user preferences
 ### **1. Locally**
 Start the service:
 ```bash
-cd Managadr && npm run dev
+cd Manager && npm run dev
 ```
 The service will run on `http://localhost:8080`.
 
